@@ -26,7 +26,10 @@ defmodule XMLRPC.Base64 do
     # We manually remove whitespace on older versions
     #  of elixir
     case encoded do
-      [] -> {:ok, encoded}
+      [] ->
+        # This is an empty value, just return an empty
+        # binary
+        {:ok, <<>>}
       _ ->
         if Version.compare(System.version, "1.2.3") == :lt do
           encoded
