@@ -162,6 +162,11 @@ defmodule XMLRPC.Decoder do
     decoded
   end
 
+  # Parse an empty 'string' atom
+  defp parse_value( {:ValueType, [], [{:"ValueType-string", [],           []}]}, _options) do
+    ""
+  end
+
   # Parse a 'string' atom
   defp parse_value( {:ValueType, [], [{:"ValueType-string", [],           string}]}, _options) do
     string
@@ -170,6 +175,11 @@ defmodule XMLRPC.Decoder do
   # A string value can optionally drop the type specifier. The node is assumed to be a string value
   defp parse_value( {:ValueType, [], [string]                                     }, _options) when is_binary(string) do
     string
+  end
+
+  # An empty string that drops the type specifier will parse as :undefined instead of an empty binary.
+  defp parse_value( {:ValueType, [], :undefined                                   }, _options) do
+    ""
   end
 
   # Parse a 'nil' atom
@@ -189,11 +199,11 @@ defmodule XMLRPC.Decoder do
   # Note: values can be 'structs'/'arrays' as well as other atom types
   defp parse_struct(doc, options) when is_list(doc) do
     doc
-    |> Enum.reduce  Map.new,
-                    fn(member, acc) ->
-                        parse_member(member, options)
-                        |> Enum.into acc
-                    end
+    |> Enum.reduce(Map.new,
+                        fn(member, acc) ->
+                            parse_member(member, options)
+                            |> Enum.into(acc)
+                        end)
   end
 
   # Parse the 'array'
@@ -201,7 +211,7 @@ defmodule XMLRPC.Decoder do
   # Note: values can be 'structs'/'arrays' as well as other atom types
   defp parse_array(doc, options) when is_list(doc) do
     doc
-    |> Enum.map fn v -> parse_value(v, options) end
+    |> Enum.map(fn v -> parse_value(v, options) end)
   end
 
   # Empty array, ie <array><data/></data>
@@ -212,7 +222,7 @@ defmodule XMLRPC.Decoder do
   # Parse a list of Parameter values (implies a Request)
   defp parse_params(values, options) when is_list(values) do
     values
-    |> Enum.map fn p -> parse_param(p, options) end
+    |> Enum.map(fn p -> parse_param(p, options) end)
   end
 
   # Parse a single Parameter
