@@ -64,6 +64,21 @@ defmodule XMLRPC.Decoder do
     %MethodCall{ method_name: method_name, params: parse_params(params, options) }
   end
 
+  # Parse a method 'Call' with no (:undefined) params
+  defp parse(  {:methodCall, [], method_name,
+                {:"methodCall/params", [], :undefined }},
+               options )
+  do
+    %MethodCall{ method_name: method_name, params: parse_params([], options) }
+  end
+
+  # Parse a method 'Call' with the params missing
+  defp parse(  {:methodCall, [], method_name, :undefined},
+               options )
+  do
+    %MethodCall{ method_name: method_name, params: parse_params([], options) }
+  end	
+
   # Parse a 'fault' Response
   defp parse(  {:methodResponse, [],
                 {:"methodResponse/fault", [],
@@ -103,6 +118,20 @@ defmodule XMLRPC.Decoder do
 
   # Parse an 'integer' atom
   defp parse_value( {:ValueType, [], [{:"ValueType-int", [],              int}]}, _options)
+      when is_integer(int)
+  do
+      int
+  end
+
+  # Parse an 'i4' atom (32 bit integer)
+  defp parse_value( {:ValueType, [], [{:"ValueType-i4", [],              int}]}, _options)
+      when is_integer(int)
+  do
+      int
+  end
+
+  # Parse an 'i8' atom (64 bit integer)
+  defp parse_value( {:ValueType, [], [{:"ValueType-i8", [],              int}]}, _options)
       when is_integer(int)
   do
       int

@@ -22,6 +22,26 @@ defmodule XMLRPC.DecoderTest do
 
   @rpc_simple_call_1_elixir %XMLRPC.MethodCall{method_name: "sample.sum", params: [17, 13]}
 
+  @rpc_simple_call_2 """
+<?xml version="1.0" encoding="UTF-8"?>
+<methodCall>
+   <methodName>sample.sum</methodName>
+   <params>
+   </params>
+</methodCall>
+"""
+
+  @rpc_simple_call_2_elixir %XMLRPC.MethodCall{method_name: "sample.sum", params: []}
+
+  @rpc_simple_call_3 """
+<?xml version="1.0" encoding="UTF-8"?>
+<methodCall>
+   <methodName>sample.sum</methodName>
+</methodCall>
+"""
+
+  @rpc_simple_call_3_elixir %XMLRPC.MethodCall{method_name: "sample.sum", params: []}
+
 
   @rpc_simple_response_1 """
 <?xml version="1.0" encoding="UTF-8"?>
@@ -35,6 +55,29 @@ defmodule XMLRPC.DecoderTest do
 """
 
   @rpc_simple_response_1_elixir %XMLRPC.MethodResponse{param: 30}
+
+
+  # 2^50 = 1125899906842624 (more than 32 bit)
+  @rpc_bitsize_integer_response_1 """
+<?xml version="1.0" encoding="UTF-8"?>
+<methodResponse>
+   <params>
+      <param>
+        <value>
+          <array>
+            <data>
+              <value><i4>17</i4></value>
+              <value><i8>1125899906842624</i8></value>
+            </data>
+           </array>
+         </value>
+      </param>
+   </params>
+</methodResponse>
+"""
+
+  @rpc_bitsize_integer_response_1_elixir %XMLRPC.MethodResponse{param: [17, 1125899906842624]}
+
 
 
   @rpc_fault_1 """
@@ -282,9 +325,24 @@ MjIzMzQ0NTU2Njc3ODg5OQ==
     assert decode == {:ok, @rpc_simple_call_1_elixir}
   end
 
+  test "decode rpc_simple_call_2" do
+    decode = XMLRPC.decode(@rpc_simple_call_2)
+    assert decode == {:ok, @rpc_simple_call_2_elixir}
+  end
+
+  test "decode rpc_simple_call_3" do
+    decode = XMLRPC.decode(@rpc_simple_call_3)
+    assert decode == {:ok, @rpc_simple_call_3_elixir}
+  end
+	
   test "decode rpc_simple_response_1" do
     decode = XMLRPC.decode!(@rpc_simple_response_1)
     assert decode == @rpc_simple_response_1_elixir
+  end
+
+  test "decode rpc_bitsize_integer_response_1" do
+    decode = XMLRPC.decode!(@rpc_bitsize_integer_response_1)
+    assert decode == @rpc_bitsize_integer_response_1_elixir
   end
 
   test "decode rpc_fault_1" do
