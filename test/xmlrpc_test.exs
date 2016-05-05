@@ -368,7 +368,7 @@ MjIzMzQ0NTU2Njc3ODg5OQ==
   @rpc_base64_call_1_elixir_decoded %XMLRPC.MethodCall{method_name: "sample.fun1", params: [true,
                                                                                             "aabbccddeeffaabbccddeeff0011223344556677889900112233445566778899"]}
   @rpc_base64_call_2_elixir_decoded %XMLRPC.MethodCall{method_name: "sample.fun1", params: [true,
-                                                                                            <<>>]}
+                                                                                            %XMLRPC.Base64{raw: []}]}
 
   @rpc_response_invalid_1 """
 <?xml version="1.0" encoding="UTF-8"?>
@@ -486,16 +486,6 @@ MjIzMzQ0NTU2Njc3ODg5OQ==
     assert decode == {:error, "Malformed: Tags don\'t match"}
   end
 
-  test "decode base64 data" do
-    decode = XMLRPC.decode(@rpc_base64_call_1)
-    assert decode == {:ok, @rpc_base64_call_1_elixir_decoded}
-  end
-
-  test "decode base64 data with whitespace" do
-    decode = XMLRPC.decode(@rpc_base64_call_2)
-    assert decode == {:ok, @rpc_base64_call_1_elixir_decoded}
-  end
-
   test "decode base64 data with empty value" do
     decode = XMLRPC.decode(@rpc_base64_call_3)
     assert decode == {:ok, @rpc_base64_call_2_elixir_decoded}
@@ -563,14 +553,6 @@ MjIzMzQ0NTU2Njc3ODg5OQ==
       XMLRPC.encode!(@rpc_response_invalid_3_elixir)
     end
   end
-
-  test "encode base64 data" do
-    encode = XMLRPC.encode!(@rpc_base64_call_1_elixir_to_encode)
-                 |> IO.iodata_to_binary
-
-    assert encode == strip_space(@rpc_base64_call_1)
-  end
-
 
   # ##########################################################################
 
