@@ -331,6 +331,7 @@ MjIzMzQ0NTU2Njc3ODg5OQ==
   @rpc_base64_call_2_elixir_decoded %XMLRPC.MethodCall{method_name: "sample.fun1", params: [true,
                                                                                             %XMLRPC.Base64{raw: []}]}
 
+  # Various malformed tags
   @rpc_response_invalid_1 """
 <?xml version="1.0" encoding="UTF-8"?>
 <methodResponse>
@@ -346,6 +347,7 @@ MjIzMzQ0NTU2Njc3ODg5OQ==
 </methodResponse>
 """
 
+  # Various malformed tags
   @rpc_response_invalid_2 """
 <?xml version="1.0" encoding="UTF-8"?>
 <methodResponse>
@@ -357,7 +359,24 @@ MjIzMzQ0NTU2Njc3ODg5OQ==
 </methodResponse>
 """
 
-  @rpc_response_invalid_3_elixir %XMLRPC.MethodResponse{param: HashSet.new}
+  # Raise an error when trying to encode unsupported param type (function in this case)
+  @rpc_response_invalid_3_elixir %XMLRPC.MethodResponse{param: &Kernel.exit/1}
+
+  @rpc_response_empty_struct """
+<?xml version="1.0" encoding="UTF-8"?>
+<methodResponse>
+  <params>
+    <param>
+      <value>
+        <struct>
+        </struct>
+      </value>
+    </param>
+  </params>
+</methodResponse>
+"""
+
+  @rpc_response_empty_struct_elixir %XMLRPC.MethodResponse{param: %{}}
 
 
   # ##########################################################################
@@ -452,6 +471,11 @@ MjIzMzQ0NTU2Njc3ODg5OQ==
     assert decode == {:ok, @rpc_base64_call_2_elixir_decoded}
   end
 
+  test "decode rpc_response_empty_struct" do
+    decode = XMLRPC.decode(@rpc_response_empty_struct)
+    assert decode == {:ok, @rpc_response_empty_struct_elixir}
+  end
+
   # ##########################################################################
 
 
@@ -513,6 +537,13 @@ MjIzMzQ0NTU2Njc3ODg5OQ==
     assert_raise XMLRPC.EncodeError, fn ->
       XMLRPC.encode!(@rpc_response_invalid_3_elixir)
     end
+  end
+
+  test "encode rpc_response_empty_struct" do
+	encode = XMLRPC.encode!(@rpc_response_empty_struct_elixir)
+			 |> IO.iodata_to_binary
+
+	assert encode == strip_space(@rpc_response_empty_struct)
   end
 
   # ##########################################################################

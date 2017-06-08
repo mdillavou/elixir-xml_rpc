@@ -88,8 +88,8 @@ defmodule XMLRPC.Decoder do
       when is_list(fault_struct)
   do
     fault = parse_struct(fault_struct, options)
-    fault_code = Dict.get(fault, "faultCode")
-    fault_string = Dict.get(fault, "faultString")
+    fault_code = Map.get(fault, "faultCode")
+    fault_string = Map.get(fault, "faultString")
     %Fault{ fault_code: fault_code, fault_string: fault_string }
   end
 
@@ -114,6 +114,10 @@ defmodule XMLRPC.Decoder do
       when is_list(struct)
   do
     parse_struct(struct, options)
+  end
+
+  defp parse_value( {:ValueType, [], [{:StructType, [], _struct}]}, _options) do
+    %{}
   end
 
   # Parse an 'integer' atom
